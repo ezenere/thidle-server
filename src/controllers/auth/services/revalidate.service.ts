@@ -19,6 +19,8 @@ export class RevalidateService {
 
     const userLoggedInfo = await DecryptJWEToken(bearer, this.MySqlDB);
 
+    console.log(userLoggedInfo);
+
     if (userLoggedInfo.exp < Date.now())
       throw new HttpException('Expired Token', 401);
 
@@ -27,7 +29,7 @@ export class RevalidateService {
       [userLoggedInfo.id, userLoggedInfo.hash, 'R'],
     );
 
-    if (!tokenInfo) throw new HttpException('Unexistent Token', 401);
+    if (!tokenInfo) throw new HttpException('Unexistent Token Revalidate', 401);
 
     if (tokenInfo.TokenInvalidated === 1)
       throw new HttpException('Revoked Token', 401);

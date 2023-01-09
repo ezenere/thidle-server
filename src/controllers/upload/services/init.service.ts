@@ -40,11 +40,12 @@ export class InitUploadService {
         FileSegments, 
         FileTo, 
         FileSize,
-        FileBy
+        FileBy,
+        FileCreation
       ) VALUES (
-        ?, ?, 0, ?, 0, ?, ?, ?
+        ?, ?, 0, ?, 0, ?, ?, ?, ?
       );`,
-        [name, hash, uploadHash, availableTypes[type], size, user],
+        [name, hash, uploadHash, availableTypes[type], size, user, new Date()],
       )
     )
       return { key: uploadHash };

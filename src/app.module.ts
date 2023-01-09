@@ -19,6 +19,7 @@ import { NewThoughtService } from './controllers/thought/services/new.service';
 import { LikeThoughtService } from './controllers/thought/services/like.service';
 import { FileUploadService } from './controllers/upload/services/file.service';
 import { FinishUploadService } from './controllers/upload/services/finish.service';
+import { ThoughtProfileService } from './controllers/profile/services/thoughts.service';
 
 @Module({
   imports: [],
@@ -33,6 +34,7 @@ import { FinishUploadService } from './controllers/upload/services/finish.servic
     ...databaseProviders,
     LoginService,
     InfoService,
+    ThoughtProfileService,
     RevalidateService,
     AuthCheckService,
     ProfileSuggestionsService,
@@ -48,6 +50,6 @@ import { FinishUploadService } from './controllers/upload/services/finish.servic
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JWTMiddleware).exclude('^/v0/auth/(.*)').forRoutes('*');
+    consumer.apply(JWTMiddleware).exclude('/v0/auth/(.*)').forRoutes('*');
   }
 }

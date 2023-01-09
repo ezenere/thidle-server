@@ -16,9 +16,9 @@ export class JWTMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: URequest, res: Response, next: NextFunction) {
-    const token = req?.headers?.authorization?.split(' ');
+    const token = (req?.headers?.authorization || '').split(' ');
 
-    if (token.length !== 2) throw new HttpException('Ilegal Token', 403);
+    if (token.length !== 2) throw new HttpException('Forbidden', 403);
     if (token[0] === 'DEVELOPMENT' && token[1] === 'EZENERE') {
       req.user = { id: 1, exp: 0 };
       next();
@@ -37,7 +37,7 @@ export class JWTMiddleware implements NestMiddleware {
       [userLoggedInfo.id, userLoggedInfo.hash, 'T'],
     );
 
-    if (!tokenInfo) throw new HttpException('Unexistent Token', 403);
+    if (!tokenInfo) throw new HttpException('Unexistent Token Check', 403);
 
     if (tokenInfo.TokenInvalidated === 1)
       throw new HttpException('Revoked Token', 403);

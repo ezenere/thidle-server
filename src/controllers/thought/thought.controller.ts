@@ -26,6 +26,18 @@ export class ThoughtController {
     );
   }
 
+  @Get(':id')
+  async getThought(@Req() request: URequest, @Param('id') id: string): Promise<Array<ThoughtObject>> {
+    const { comments, depht } = request.query;
+
+    return this.mainService.getThought(
+      request.user.id,
+      parseInt(id),
+      parseInt(typeof comments === 'string' ? comments : 'NaN'),
+      parseInt(typeof depht === 'string' ? depht : 'NaN')
+    );
+  }
+
   @Post()
   async postThought(@Req() request: URequest): Promise<{ id: number }> {
     const { text, activeAt, privacy, commentPrivacy, parent, embeed } =

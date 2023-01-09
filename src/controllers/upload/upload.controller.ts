@@ -58,9 +58,9 @@ export class UploadController {
     return this.finishService.sendToProfile(key, request.user.id, x, y, scale);
   }
 
-  // @Put('background/:key')
-  // async sendToBackground(@Req() request: URequest): Promise<{ key: string }> {
-  //   const { scale, x, y } = request.body;
-  //   return this.uploadService.init(name, type, size, request.user.id);
-  // }
+  @Put('background/:key')
+  async sendToBackground(@Req() request: URequest, @Param() { key }: { key: string }): Promise<{ status: boolean }> {
+    const { scale, x, y } = request.body;
+    return this.finishService.sendToBackground(key, request.user.id, x, y, scale);
+  }
 }

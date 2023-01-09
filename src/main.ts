@@ -6,10 +6,10 @@ process.env.filePath = '/opt/thidle';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: { origin: ['http://localhost:3001', 'https://thidle.com'] },
+    cors: { origin: ['http://localhost:3000', 'https://thidle.com', 'https://media.thidle.com', 'https://api.thidle.com'] },
   });
   app.getHttpAdapter().getInstance().disable('x-powered-by');
   app.setGlobalPrefix('v0');
-  await app.listen(3000);
+  await app.listen(3001);
 }
 bootstrap();

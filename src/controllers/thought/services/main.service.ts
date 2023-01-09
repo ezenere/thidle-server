@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { MySqlConnection } from 'src/database/mysql.db';
 import { ThoughtObject } from 'src/interfaces/ThoughtObject';
 
@@ -17,7 +17,7 @@ export class ThoughtMainService {
     try {
       return (
         await this.MySqlDB.query(
-          `SELECT GetThought(ThoughtID, ?) as result
+          `SELECT GetThought(ThoughtID, ?, 2, 1, 1) as result
           FROM ThidleDB.ThoughtsByDate AS Thoughts
           WHERE
             (
@@ -60,22 +60,54 @@ export class ThoughtMainService {
                 WHEN ThoughtPrivacyStatus = 'F' THEN ((
                 SELECT COUNT(*) 
                   FROM Follows 
-                  WHERE FollowFrom = 1 AND FollowTo = ThoughtMadeBy
+                  WHERE FollowFrom = ? AND FollowTo = ThoughtMadeBy
               ) = 1 AND  (
                   SELECT COUNT(*) 
                   FROM Follows 
-                  WHERE FollowFrom = ThoughtMadeBy AND FollowTo = 1
+                  WHERE FollowFrom = ThoughtMadeBy AND FollowTo = ?
               ) = 1)
-                WHEN ThoughtPrivacyStatus = 'S' THEN (SELECT COUNT(*) FROM SelectedPeople WHERE SelectedFrom = ThoughtMadeBy AND SelectedUser = 1) = 1
+                WHEN ThoughtPrivacyStatus = 'S' THEN (SELECT COUNT(*) FROM SelectedPeople WHERE SelectedFrom = ThoughtMadeBy AND SelectedUser = ?) = 1
                 ELSE FALSE
-              END OR ThoughtMadeBy = 1
+              END OR ThoughtMadeBy = ?
             ) LIMIT 30;`,
-          [userId, userId, userId, userId, userId],
+          [userId, userId, userId, userId, userId, userId, userId, userId, userId],
         )
       ).map((i) => i.result);
     } catch (e) {
       console.log(e);
       return [];
     }
+  }
+
+  async getThought(user: number, id: number, comments: number, depht: number){
+    if(isNaN(id)) throw new BadRequestException({success: false, error: 'ID_NE_NUM', message: 'ID is not a number.'});
+
+    const thought = this.MySqlDB.queryOne(`SELECT GetThought(ThoughtID, ?, ?, ?, 1) as result
+    FROM ThidleDB.ThoughtsByDate AS Thoughts
+    WHERE (CASE 
+    WHEN ThoughtPrivacyStatus = 'P' THEN TRUE
+      WHEN ThoughtPrivacyStatus = 'A' THEN TRUE
+      WHEN ThoughtPrivacyStatus = 'F' THEN ((
+      SELECT COUNT(*) 
+        FROM Follows 
+        WHERE FollowFrom = ? AND FollowTo = ThoughtMadeBy
+    ) = 1 AND  (
+        SELECT COUNT(*) 
+        FROM Follows 
+        WHERE FollowFrom = ThoughtMadeBy AND FollowTo = ?
+    ) = 1)
+      WHEN ThoughtPrivacyStatus = 'S' THEN (SELECT COUNT(*) FROM SelectedPeople WHERE SelectedFrom = ThoughtMadeBy AND SelectedUser = ?) = 1
+      ELSE FALSE
+    END OR ThoughtMadeBy = ?) AND ThoughtID = ?`, [
+      user, 
+      Math.min(isNaN(comments) ? 0 : comments, 100), 
+      Math.min(isNaN(depht) ? 1 : depht, 3), 
+      user, user, user, user, 
+      id
+    ]);
+
+    if(!thought) throw new NotFoundException({success: false, error: 'T_NF', message: 'Thought not found or you do not have permission to view it.'});
+
+    return thought;
   }
 }

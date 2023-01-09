@@ -36,7 +36,7 @@ export class AuthController {
     return await this.checkService.check(username?.toString());
   }
 
-  @Get('revalidate')
+  @Post('revalidate')
   async revalidate(@Req() request: Request): Promise<any> {
     return await this.revalidateService.revalidate(request);
   }
