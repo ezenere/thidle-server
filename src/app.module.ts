@@ -20,6 +20,7 @@ import { LikeThoughtService } from './controllers/thought/services/like.service'
 import { FileUploadService } from './controllers/upload/services/file.service';
 import { FinishUploadService } from './controllers/upload/services/finish.service';
 import { ThoughtProfileService } from './controllers/profile/services/thoughts.service';
+import { ProfileImageService } from './controllers/profile/services/image.service';
 
 @Module({
   imports: [],
@@ -46,6 +47,7 @@ import { ThoughtProfileService } from './controllers/profile/services/thoughts.s
     InitUploadService,
     FileUploadService,
     FinishUploadService,
+    ProfileImageService,
   ],
 })
 export class AppModule implements NestModule {

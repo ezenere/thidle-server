@@ -19,8 +19,6 @@ export class RevalidateService {
 
     const userLoggedInfo = await DecryptJWEToken(bearer, this.MySqlDB);
 
-    console.log(userLoggedInfo);
-
     if (userLoggedInfo.exp < Date.now())
       throw new HttpException('Expired Token', 401);
 

@@ -19,7 +19,7 @@ export class ThoughtProfileService {
         [user, user, username],
       );
     
-    if(!status) throw new NotFoundException({ success: false, error: 'U_NF', message: 'User not found.' });
+    if(!status) throw new NotFoundException({ error: 'U_NF', message: 'User not found.' });
 
     const get = (status.private === 1 && status.follow.status === 1) || status.same;
 

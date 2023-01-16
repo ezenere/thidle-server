@@ -80,7 +80,7 @@ export class ThoughtMainService {
   }
 
   async getThought(user: number, id: number, comments: number, depht: number){
-    if(isNaN(id)) throw new BadRequestException({success: false, error: 'ID_NE_NUM', message: 'ID is not a number.'});
+    if(isNaN(id)) throw new BadRequestException({error: 'ID_NE_NUM', message: 'ID is not a number.'});
 
     const thought = this.MySqlDB.queryOne(`SELECT GetThought(ThoughtID, ?, ?, ?, 1) as result
     FROM ThidleDB.ThoughtsByDate AS Thoughts
@@ -106,7 +106,7 @@ export class ThoughtMainService {
       id
     ]);
 
-    if(!thought) throw new NotFoundException({success: false, error: 'T_NF', message: 'Thought not found or you do not have permission to view it.'});
+    if(!thought) throw new NotFoundException({error: 'T_NF', message: 'Thought not found or you do not have permission to view it.'});
 
     return thought;
   }

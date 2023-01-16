@@ -138,10 +138,7 @@ export class NewThoughtService {
           WHERE ThoughtID = ?`,
           [id],
         );
-        return {
-          success: true,
-          data: true,
-        };
+        return (await this.MySqlDB.queryOne('SELECT ThidleDB.GetThought(?, ?, 0, 1, 1) as result;', [id, userId])).result;
       } catch (e) {
         throw new InternalServerErrorException({
           error: 'DBE',

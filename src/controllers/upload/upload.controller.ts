@@ -46,20 +46,20 @@ export class UploadController {
       });
   }
 
-  // @Put('thought/:key')
-  // async sendToThought(@Req() request: URequest): Promise<{ key: string }> {
-  //   const { scale, x, y } = request.body;
-  //   return this.uploadService.init(name, type, size, request.user.id);
-  // }
+  @Put(':key/thought')
+  async sendToThought(@Req() request: URequest, @Param() { key }: { key: string }): Promise<{ status: boolean }> {
+    const { id } = request.body;
+    return this.finishService.sendToThought(key, request.user.id, id);
+  }
 
-  @Put('profile/:key')
-  async sendToProfile(@Req() request: URequest, @Param() { key }: { key: string }): Promise<{ status: boolean }> {
+  @Put(':key/profile')
+  async sendToProfile(@Req() request: URequest, @Param() { key }: { key: string }): Promise<{ alt: string; url: string }> {
     const { scale, x, y } = request.body;
     return this.finishService.sendToProfile(key, request.user.id, x, y, scale);
   }
 
-  @Put('background/:key')
-  async sendToBackground(@Req() request: URequest, @Param() { key }: { key: string }): Promise<{ status: boolean }> {
+  @Put(':key/background')
+  async sendToBackground(@Req() request: URequest, @Param() { key }: { key: string }): Promise<{ alt: string; url: string }> {
     const { scale, x, y } = request.body;
     return this.finishService.sendToBackground(key, request.user.id, x, y, scale);
   }

@@ -1,6 +1,7 @@
 // @Param('username') username: string,
-import { Controller, Get, Req, Param } from '@nestjs/common';
+import { Controller, Get, Req, Param, Delete } from '@nestjs/common';
 import { URequest } from 'src/interfaces/URequest';
+import { ProfileImageService } from './services/image.service';
 import { ProfileInfoService } from './services/info.service';
 import { ThoughtProfileService } from './services/thoughts.service';
 
@@ -8,7 +9,8 @@ import { ThoughtProfileService } from './services/thoughts.service';
 export class ProfileController {
   constructor(
     private readonly infoService: ProfileInfoService, 
-    private readonly thoughtsService: ThoughtProfileService
+    private readonly thoughtsService: ThoughtProfileService,
+    private readonly imagesService: ProfileImageService
   ) {}
 
   @Get('info')
@@ -25,5 +27,13 @@ export class ProfileController {
     @Param() params: { username: string },
   ): Promise<any> {
     return await this.thoughtsService.thoughts(request.user.id, params.username);
+  }
+
+  @Delete('picture')
+  async rmPicture(
+    @Req() request: URequest,
+    @Param() params: { username: string },
+  ): Promise<any> {
+    return await this.imagesService.rmPicture(request.user.id, params.username);
   }
 }

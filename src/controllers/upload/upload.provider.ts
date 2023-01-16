@@ -184,7 +184,7 @@ class FileUploader {
       await this.sql.query('DELETE FROM UploadFiles WHERE FileHash = ?', [
         this.key,
       ]);
-      await promises.unlink(this.path.toString());
+      await promises.unlink(join(this.path.toString(), 'file'));
     } else {
       await this.sql.query(
         'UPDATE UploadFiles SET FileUploaded = 1, FileUploadEnd = NOW() WHERE FileHash = ?',
