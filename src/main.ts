@@ -1,5 +1,4 @@
 import { NestFactory } from '@nestjs/core';
-import { Afterburner } from './afterburner/afterburner';
 import { AppModule } from './app.module';
 
 process.env.filePath = '/opt/thidle';

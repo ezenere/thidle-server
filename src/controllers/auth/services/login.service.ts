@@ -15,7 +15,7 @@ export class LoginService {
   ) {}
 
   async login(username: string, password: string): Promise<any> {
-    const user = await this.MySqlDB.queryOne(
+    let user = await this.MySqlDB.queryOne(
       `SELECT * FROM Users WHERE 
       UserUsername = ? OR 
       ? IN (SELECT MailAddress FROM Mails WHERE MailUser = UserID) OR
@@ -25,7 +25,7 @@ export class LoginService {
 
     if (!user) throw new HttpException('User not found!', 403);
 
-    await CheckKeys(user, this.MySqlDB);
+    user = await CheckKeys(user, this.MySqlDB);
 
     const passwordValid = await scryptValidate(user.UserPassword, password);
 

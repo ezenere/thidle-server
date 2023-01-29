@@ -180,6 +180,7 @@ export async function CheckKeys(user: any, conn: MySqlConnection) {
     user.UserServerPrivateKey = keys.private;
     user.UserServerPublicKey = keys.public;
   }
+  return user;
 }
 
 export async function JWEEncrypt(

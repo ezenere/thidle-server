@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Post, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Req, Post, Put, Param, Delete, Res, Query } from '@nestjs/common';
 import { DefaultResponseObject } from 'src/interfaces/DefaultResponseObject';
 import { ThoughtObject } from 'src/interfaces/ThoughtObject';
 import { URequest } from 'src/interfaces/URequest';
@@ -15,14 +15,14 @@ export class ThoughtController {
   ) {}
 
   @Get()
-  async getMain(@Req() request: URequest): Promise<Array<ThoughtObject>> {
-    const { limit, offset, exclude } = request.query;
+  async getMain(@Req() request: URequest, @Query() query: { limit: number, cursor: string, mode: string }): Promise<{items: Array<ThoughtObject>, cursor: string}> {
+    const { limit, cursor, mode } = query;
 
     return this.mainService.getMain(
       request.user.id,
-      Math.min(parseInt((limit || 3).toString()), 50),
-      parseInt((offset || 0).toString()),
-      (exclude || '').toString(),
+      Math.min(parseInt((limit || 30).toString()), 50),
+      cursor,
+      mode
     );
   }
 
@@ -56,7 +56,7 @@ export class ThoughtController {
 
   @Put(':id')
   async putThought(
-    @Param() params,
+    @Param() params: { id: number },
     @Req() request: URequest,
   ): Promise<DefaultResponseObject> {
     const { id } = params;
@@ -67,7 +67,7 @@ export class ThoughtController {
   @Post('like/:id')
   async likeThought(
     @Req() request: URequest,
-    @Param() params,
+    @Param() params: { id: number }
   ): Promise<{ count: number }> {
     const { id } = params;
 
@@ -77,7 +77,7 @@ export class ThoughtController {
   @Delete('like/:id')
   async unlikeThought(
     @Req() request: URequest,
-    @Param() params,
+    @Param() params: { id: number },
   ): Promise<{ count: number }> {
     const { id } = params;
 

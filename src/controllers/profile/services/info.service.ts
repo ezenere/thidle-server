@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { MySqlConnection } from 'src/database/mysql.db';
 
 @Injectable()
@@ -16,8 +16,10 @@ export class ProfileInfoService {
       FROM ThidleDB.Users WHERE UserUsername = ?;`,
       [caller_id, caller_id, username],
     );
-    const get =
-      (status.private === 1 && status.follow.status === 1) || status.same;
+
+    if(!status) throw new NotFoundException({ error: 'U_NF', message: 'User not found.' });
+
+    const get = status.private === 0 || (status.private === 1 && status.follow.status === 1) || status.same;
     return await this.MySqlDB.queryOne(
       `SELECT 
         UserName as 'name', 

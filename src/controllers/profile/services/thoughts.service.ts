@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { MySqlConnection } from 'src/database/mysql.db';
 import { ThoughtObject } from 'src/interfaces/ThoughtObject';
+import { createCursor, retrieveCursor } from 'src/utils/commons';
 
 @Injectable()
 export class ThoughtProfileService {
@@ -8,7 +9,7 @@ export class ThoughtProfileService {
     @Inject('MySqlDatabase') private readonly MySqlDB: MySqlConnection,
   ) {}
 
-  async thoughts(user: number, username: string){
+  async thoughts(user: number, username: string, limit: number, cursor: string, mode: string){
     const status = await this.MySqlDB.queryOne(
         `SELECT 
           UserIsPrivate as 'private',
@@ -21,36 +22,45 @@ export class ThoughtProfileService {
     
     if(!status) throw new NotFoundException({ error: 'U_NF', message: 'User not found.' });
 
-    const get = (status.private === 1 && status.follow.status === 1) || status.same;
+    if(!(status.private === 0 || (status.private === 1 && status.follow.status === 1) || status.same)) return [];
 
-    if(!get) return [];
+    const lastCursor = retrieveCursor(cursor)
+    const modes = { more: { sql: 'AND ThoughtCursorID < ?', cursor: 'bottom' }, new: { sql: 'AND ThoughtCursorID > ?', cursor: 'top' } }
+    const cursors = { top: lastCursor.top || null, bottom: lastCursor.bottom || null };
+    const useCursor = !!(modes[mode] && cursors[modes[mode].cursor])
 
-    const thoughts = await this.MySqlDB.query(`SELECT GetThought(ThoughtID, ?, 0, 1, 1) as result
-    FROM ThidleDB.ThoughtsByDate AS Thoughts
-    WHERE
-      ThoughtMadeBy = ? 
-      AND (
-        CASE 
-          WHEN ThoughtPrivacyStatus = 'P' THEN TRUE
-          WHEN ThoughtPrivacyStatus = 'A' THEN FALSE
-          WHEN ThoughtPrivacyStatus = 'F' THEN ((
-          SELECT COUNT(*) 
-            FROM Follows 
-            WHERE FollowFrom = ? AND FollowTo = ThoughtMadeBy
-        ) = 1 AND  (
-            SELECT COUNT(*) 
-            FROM Follows 
-            WHERE FollowFrom = ThoughtMadeBy AND FollowTo = ?
-        ) = 1)
-          WHEN ThoughtPrivacyStatus = 'S' THEN (SELECT COUNT(*) FROM SelectedPeople WHERE SelectedFrom = ThoughtMadeBy AND SelectedUser = ?) = 1
-          ELSE FALSE
-        END OR ThoughtMadeBy = ?
-      ) LIMIT 30;`, [
-      user, 
-      status.id, 
-      user, user, user, user
-    ]);
+    const thoughts = (await this.MySqlDB.query(`SELECT GetThought(ThoughtID, ?, 2, 1, 1) as result, ThoughtCursorID as cur FROM (
+        SELECT ThoughtsByDate.* FROM ThoughtsByDate 
+        LEFT JOIN Follows as FM ON FM.FollowFrom = ThoughtMadeBy AND FM.FollowTo = ? AND (FM.FollowNeedApproval = 0 OR (FM.FollowNeedApproval = 1 AND FM.FollowApproveStatus = 'A'))
+        LEFT JOIN SelectedPeople ON SelectedFrom = ThoughtMadeBy AND SelectedUser = ?
+        WHERE
+          ThoughtMadeBy = ? AND
+          (
+            CASE 
+              WHEN ThoughtPrivacyStatus = 'P' THEN TRUE
+              WHEN ThoughtPrivacyStatus = 'A' THEN TRUE
+              WHEN ThoughtPrivacyStatus = 'F' THEN FM.FollowCreatedAt IS NOT NULL
+              WHEN ThoughtPrivacyStatus = 'S' THEN SelectedPeople.SelectedDate IS NOT NULL
+              ELSE FALSE
+              END
+          ) ${useCursor ? modes[mode].sql : ''}
+        ORDER BY ThoughtCursorID DESC
+        LIMIT 100
+    ) Thoughts
+    ORDER BY ThoughtCursorID DESC
+    LIMIT 30`, 
+    useCursor ? 
+      [user, user, user, status.id, cursors[modes[mode].cursor]] :
+      [user, user, user, status.id]
+    )).map((i: { result: any, cur: string }) => {
+      if(!cursors.top) cursors.top = i.cur;
+      cursors.bottom = i.cur;
+      return i.result
+    });
 
-    return thoughts.map((i: { result: any }) => i.result);
+    return {
+      items: thoughts, 
+      cursor: createCursor(cursors.bottom, cursors.top) 
+    };
   }
 }

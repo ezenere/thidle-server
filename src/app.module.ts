@@ -21,6 +21,12 @@ import { FileUploadService } from './controllers/upload/services/file.service';
 import { FinishUploadService } from './controllers/upload/services/finish.service';
 import { ThoughtProfileService } from './controllers/profile/services/thoughts.service';
 import { ProfileImageService } from './controllers/profile/services/image.service';
+import { microservicesProvider } from './controllers/microservices/microservices.providers';
+import { SignupController } from './controllers/signup/signup.controller';
+import { SignupInitService } from './controllers/signup/services/init.service';
+import { SignupCheckService } from './controllers/signup/services/check.service';
+import { SignupCreateService } from './controllers/signup/services/create.service';
+import { ProfileFollowService } from './controllers/profile/services/follow.service';
 
 @Module({
   imports: [],
@@ -30,9 +36,11 @@ import { ProfileImageService } from './controllers/profile/services/image.servic
     ThoughtController,
     ProfileController,
     UploadController,
+    SignupController,
   ],
   providers: [
     ...databaseProviders,
+    ...microservicesProvider,
     LoginService,
     InfoService,
     ThoughtProfileService,
@@ -48,10 +56,14 @@ import { ProfileImageService } from './controllers/profile/services/image.servic
     FileUploadService,
     FinishUploadService,
     ProfileImageService,
+    SignupInitService,
+    SignupCheckService,
+    SignupCreateService,
+    ProfileFollowService
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JWTMiddleware).exclude('/v0/auth/(.*)').forRoutes('*');
+    consumer.apply(JWTMiddleware).exclude('/v0/(auth|signup)(/?)(.*)').forRoutes('*');
   }
 }
